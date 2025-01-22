@@ -3,11 +3,19 @@
 //การลบ (delete) การค้นหา,ตรวจสอบ,ดึง,ดู (select/send)
 
 const Travel = require("../models/travel.model.js");
+const multer = require("multer");
+const path = require("path");
 
 //ฟังก์ชันเพิ่มเติมข้อมูลลงในตาราง travel_tb
 exports.createTravel = async (req, res) => {
   try {
-    const result = await Travel.create(req.body);
+    //ตัวแปรเก็บข้อมูลที่ส่งมากับข้อมูลรูปภาพที่จะเอาไปบันทึกใน Table
+    let data = {
+      ...req.body,
+      travelImage: req.file.path.replace("images\\travel\\", ""),
+    };
+
+    const result = await Travel.create(data);
     res.status(201).json({
       message: "Travel created successfully",
       data: result,
@@ -82,3 +90,33 @@ exports.getAllTravel = async (req, res) => {
     });
   }
 };
+
+//ฟังก์ชันเพื่อการอัปโหลดไฟล์
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images/travel");
+  },
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      "travel" +
+        Math.floor(Math.random() * Date.now()) +
+        path.extname(file.originalname)
+    );
+  },
+});
+
+exports.uploadTravel = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1000000,
+  },
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname));
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+  },
+}).single("travelImage");

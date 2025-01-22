@@ -38,6 +38,11 @@ const Travel = db.define(
       allowNull: false,
       field: "travellerId",
     },
+    travelImage: {
+      type: Sequelize.STRING(150),
+      allowNull: false,
+      field: "travelImage",
+    },
   },
   {
     tableName: "travel_tb",
